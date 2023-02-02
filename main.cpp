@@ -311,13 +311,16 @@ namespace {
  * Provide an improved error message when accessing outside of Vector bounds.
  */
 
-// Your code goes here:
 // ^ Your code goes here
 
+// static_assert(Get<9, Vector<0,1,2>>::value == 2); // How good is your error message?
+
+
+// Your code goes here:
 // static_assert(Get<0, Vector<0,1,2>>::value == 0);
 // static_assert(Get<1, Vector<0,1,2>>::value == 1);
 // static_assert(Get<2, Vector<0,1,2>>::value == 2);
-// static_assert(Get<9, Vector<0,1,2>>::value == 2); // How good is your error message?
+
 
 
 /**
@@ -330,14 +333,33 @@ namespace {
  * Hint: You might find it convenient to define a constexpr helper function.
  */
 
+    template<int H, int Res, typename V>
+    struct BisectLeft_Helper;
+
+    template<int H, typename V>
+    struct BisectLeft {
+        constexpr static int value = BisectLeft_Helper<H, 0, V>::value;
+    };
+
+    template<int H, int Res, int F, int... V>
+    struct BisectLeft_Helper<H, Res, Vector<F, V...>>{
+        constexpr static int value = (H > F)? BisectLeft_Helper<H, Res+1, Vector<V...>>::value : Res;
+    };
+
+    template<int H, int Res>
+    struct BisectLeft_Helper<H, Res, Vector<>>{
+        constexpr static int value = Res;
+    };
+
+
 // Your code goes here:
 // ^ Your code goes here
 
-// static_assert(BisectLeft<  3, Vector<0,1,2,3,4>>::value == 3);
-// static_assert(BisectLeft<  3, Vector<0,1,2,4,5>>::value == 3);
-// static_assert(BisectLeft<  9, Vector<0,1,2,4,5>>::value == 5);
-// static_assert(BisectLeft< -1, Vector<0,1,2,4,5>>::value == 0);
-// static_assert(BisectLeft<  2, Vector<0,2,2,2,2,2>>::value == 1);
+ static_assert(BisectLeft<  3, Vector<0,1,2,3,4>>::value == 3);
+ static_assert(BisectLeft<  3, Vector<0,1,2,4,5>>::value == 3);
+ static_assert(BisectLeft<  9, Vector<0,1,2,4,5>>::value == 5);
+ static_assert(BisectLeft< -1, Vector<0,1,2,4,5>>::value == 0);
+ static_assert(BisectLeft<  2, Vector<0,2,2,2,2,2>>::value == 1);
 
 
 /**
