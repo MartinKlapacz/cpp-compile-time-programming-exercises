@@ -40,11 +40,14 @@ namespace {
  * Hint: Use non-type template parameter pack.
  */
 
+    template<int... T>
+    struct Vector {
+    };
 
 // Your code goes here:
 // ^ Your code goes here
 
-//    static_assert(std::is_same_v<Vector<1, 2>, Vector<1, 2>>);
+    static_assert(std::is_same_v<Vector<1, 2>, Vector<1, 2>>);
 
 
 /**
@@ -53,7 +56,16 @@ namespace {
  * See main() below.
  */
 
+    template<int H, int... T>
+    void print(Vector<H, T...>) {
+        std::cout << H << ", ";
+        print(Vector<T...>{});
+    }
 
+    template<int H>
+    void print(Vector<H>) {
+        std::cout << H;
+    }
 
 // Your code goes here:
 // ^ Your code goes here
@@ -64,12 +76,19 @@ namespace {
  * Hint: Use `using type = ...` inside a struct that has both non-type and type template parameters.
  */
 
+    template<int H, typename T>
+    struct Prepend;
+
+    template<int H, int... T>
+    struct Prepend<H, Vector<T...>> {
+        using type = Vector<H, T...>;
+    };
 
 
 // Your code goes here:
 // ^ Your code goes here
 
-//    static_assert(std::is_same_v<Prepend<1, Vector<2, 3>>::type, Vector<1, 2, 3>>);
+    static_assert(std::is_same_v<Prepend<1, Vector<2, 3>>::type, Vector<1, 2, 3>>);
 
 
 /**
@@ -79,25 +98,33 @@ namespace {
  * This technique is not used further to reduce boilerplate.
  */
 
+    template<int H, typename V>
+    using PrependT = Prepend<H, V>::type;
 
 // Your code goes here:
 // ^ Your code goes here
 
 
-//    static_assert(std::is_same_v<PrependT<1, Vector<2, 3>>, Vector<1, 2, 3>>);
+    static_assert(std::is_same_v<PrependT<1, Vector<2, 3>>, Vector<1, 2, 3>>);
 
 
 /**
  * 5. Define Append.
  */
 
+    template<int H, typename T>
+    struct Append;
 
+    template<int H, int... T>
+    struct Append<H, Vector<T...>> {
+        using type = Vector<T..., H>;
+    };
 
 
 // Your code goes here:
 // ^ Your code goes here
 
-//    static_assert(std::is_same_v<Append<4, Vector<1, 2, 3>>::type, Vector<1, 2, 3, 4> >);
+    static_assert(std::is_same_v<Append<4, Vector<1, 2, 3>>::type, Vector<1, 2, 3, 4> >);
 
 
 /**
@@ -139,8 +166,34 @@ namespace {
 
 // Your code goes here:
 // ^ Your code goes here
+    template<int I, typename V1, typename V2>
+    struct RemoveAll_Helper;
 
-//    static_assert(std::is_same_v<RemoveAll<9, Vector<1,9,2,9,3,9>>::type, Vector<1,2,3>>);
+    template<int I, typename V>
+    struct RemoveAll;
+
+    template<int I, int... Vs>
+    struct RemoveAll<I, Vector<Vs...>>{
+        using type = RemoveAll_Helper<I, Vector<>, Vector<Vs...>>::type;
+    };
+
+    template<int I, int... Vs1, int... Vs2>
+    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<I, Vs2...>>{
+        using type = RemoveAll_Helper<I, Vector<Vs1...>, Vector<Vs2...>>::type;
+    };
+
+    template<int I, int J, int... Vs1, int... Vs2>
+    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<J, Vs2...>>{
+        using type = RemoveAll_Helper<I, Vector<Vs1..., J>, Vector<Vs2...>>::type;
+    };
+
+    template<int I, int... Vs>
+    struct RemoveAll_Helper<I, Vector<Vs...>, Vector<>>{
+        using type = Vector<Vs...>;
+    };
+
+    static_assert(std::is_same_v<RemoveAll<9, Vector<1,9,2,9,3,9>>::type, Vector<1,2,3>>);
+    static_assert(std::is_same_v<RemoveAll<9, Vector<>>::type, Vector<>>);
 
 
 /**
@@ -151,7 +204,22 @@ namespace {
 // Your code goes here:
 // ^ Your code goes here
 
-//    static_assert(Length<Vector<1, 2, 3>>::value == 3);
+    template<typename>
+    struct Length;
+
+
+    template<int H, int... T>
+    struct Length<Vector<H, T...>> {
+        constexpr static int value = 1 + Length<Vector<T...>>::value;
+    };
+
+    template<>
+    struct Length<Vector<>> {
+        constexpr static int value = 0;
+    };
+
+
+    static_assert(Length<Vector<1, 2, 3>>::value == 3);
 
 
 /**
@@ -162,19 +230,37 @@ namespace {
 // Your code goes here:
 // ^ Your code goes here
 
+    template<typename... V>
+    constexpr int length = Length<V...>::value;
+
+    static_assert(length<Vector<>> == 0);
+    static_assert(length<Vector<1, 2, 3>> == 3);
 
 
 /**
  * 11. Define Min, that stores the minimum of a vector in its property `value`.
  */
 
+    template<typename>
+    struct Min;
+
+    template<int H1, int H2, int... T>
+    struct Min<Vector<H1, H2, T...>> {
+        constexpr static int value = Min<Vector<(H1 < H2 ? H1 : H2), T...>>::value;
+    };
+
+    template<int H1, int H2>
+    struct Min<Vector<H1, H2>> {
+        constexpr static int value = H1 < H2 ? H1 : H2;
+    };
+
 
 // Your code goes here:
 // ^ Your code goes here
 
-//    static_assert(Min<Vector<3, 1, 2>>::value == 1);
-//    static_assert(Min<Vector<1, 2, 3>>::value == 1);
-//    static_assert(Min<Vector<3, 2, 1>>::value == 1);
+    static_assert(Min<Vector<3, 1, 2>>::value == 1);
+    static_assert(Min<Vector<1, 2, 3>>::value == 1);
+    static_assert(Min<Vector<3, 2, 1>>::value == 1);
 
 
 /**
