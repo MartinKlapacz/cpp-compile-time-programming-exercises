@@ -134,20 +134,32 @@ namespace {
 // Your code goes here:
 // ^ Your code goes here
 
-//    template<typename>
-//    struct PopBack;
-//
-//    template<int H, int... T>
-//    struct PopBack<Vector<H, T...>> {
-//        using type = Vector<H, PopBack<Vector<T...>>>;
-//    };
-//
-//    template<int H, int T>
-//    struct PopBack<Vector<H, T>> {
-//    };
-//
-//
-//    static_assert(std::is_same_v<PopBack<Vector<1, 2, 3, 4>>::type, Vector<1, 2, 3> >);
+
+    template<typename T>
+    struct PopBack;
+
+    template<typename V1, typename V2>
+    struct PopBack_Helper;
+
+    template<int... T>
+    struct PopBack<Vector<T...>> {
+        using type = PopBack_Helper<Vector<>, Vector<T...>>::type;
+    };
+
+    template<typename OutputV, int H, int... T>
+    struct PopBack_Helper<OutputV, Vector<H, T...>> {
+        using type = PopBack_Helper<typename Append<H, OutputV>::type, Vector<T...>>::type;
+    };
+
+    template<typename OutputV, int H>
+    struct PopBack_Helper<OutputV, Vector<H>> {
+        using type = OutputV;
+    };
+
+
+    static_assert(std::is_same_v<PopBack<Vector<1, 2, 3, 4, 5>>::type, Vector<1, 2, 3, 4>>);
+    static_assert(std::is_same_v<PopBack<Vector<1, 2, 3, 4, 5, 6, 7, 8, 9>>::type, Vector<1, 2, 3, 4, 5, 6, 7, 8>>);
+    static_assert(std::is_same_v<PopBack<Vector<1>>::type, Vector<>>);
 
 
 /**
