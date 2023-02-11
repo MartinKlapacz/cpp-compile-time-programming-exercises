@@ -185,26 +185,26 @@ namespace {
     struct RemoveAll;
 
     template<int I, int... Vs>
-    struct RemoveAll<I, Vector<Vs...>>{
+    struct RemoveAll<I, Vector<Vs...>> {
         using type = RemoveAll_Helper<I, Vector<>, Vector<Vs...>>::type;
     };
 
     template<int I, int... Vs1, int... Vs2>
-    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<I, Vs2...>>{
+    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<I, Vs2...>> {
         using type = RemoveAll_Helper<I, Vector<Vs1...>, Vector<Vs2...>>::type;
     };
 
     template<int I, int J, int... Vs1, int... Vs2>
-    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<J, Vs2...>>{
+    struct RemoveAll_Helper<I, Vector<Vs1...>, Vector<J, Vs2...>> {
         using type = RemoveAll_Helper<I, Vector<Vs1..., J>, Vector<Vs2...>>::type;
     };
 
     template<int I, int... Vs>
-    struct RemoveAll_Helper<I, Vector<Vs...>, Vector<>>{
+    struct RemoveAll_Helper<I, Vector<Vs...>, Vector<>> {
         using type = Vector<Vs...>;
     };
 
-    static_assert(std::is_same_v<RemoveAll<9, Vector<1,9,2,9,3,9>>::type, Vector<1,2,3>>);
+    static_assert(std::is_same_v<RemoveAll<9, Vector<1, 9, 2, 9, 3, 9>>::type, Vector<1, 2, 3>>);
     static_assert(std::is_same_v<RemoveAll<9, Vector<>>::type, Vector<>>);
 
 
@@ -323,15 +323,32 @@ namespace {
  * Provide an improved error message when accessing outside of Vector bounds.
  */
 
+
+    template<int Index, typename Vector>
+    struct Get;
+
+
+    template<int Head, int... Tail>
+    struct Get<0, Vector<Head, Tail...>> {
+        constexpr static int value = Head;
+    };
+
+    template<int Index, int Head, int... Tail>
+    struct Get<Index, Vector<Head, Tail...>> {
+        constexpr static int value = Get<Index-1, Vector<Tail...>>::value;
+    };
+
+
+
 // ^ Your code goes here
 
 // static_assert(Get<9, Vector<0,1,2>>::value == 2); // How good is your error message?
 
 
 // Your code goes here:
-// static_assert(Get<0, Vector<0,1,2>>::value == 0);
-// static_assert(Get<1, Vector<0,1,2>>::value == 1);
-// static_assert(Get<2, Vector<0,1,2>>::value == 2);
+ static_assert(Get<0, Vector<0,1,2>>::value == 0);
+ static_assert(Get<1, Vector<0,1,2>>::value == 1);
+ static_assert(Get<2, Vector<0,1,2>>::value == 2);
 
 
 
@@ -354,12 +371,12 @@ namespace {
     };
 
     template<int H, int Res, int F, int... V>
-    struct BisectLeft_Helper<H, Res, Vector<F, V...>>{
-        constexpr static int value = (H > F)? BisectLeft_Helper<H, Res+1, Vector<V...>>::value : Res;
+    struct BisectLeft_Helper<H, Res, Vector<F, V...>> {
+        constexpr static int value = (H > F) ? BisectLeft_Helper<H, Res + 1, Vector<V...>>::value : Res;
     };
 
     template<int H, int Res>
-    struct BisectLeft_Helper<H, Res, Vector<>>{
+    struct BisectLeft_Helper<H, Res, Vector<>> {
         constexpr static int value = Res;
     };
 
@@ -367,11 +384,11 @@ namespace {
 // Your code goes here:
 // ^ Your code goes here
 
- static_assert(BisectLeft<  3, Vector<0,1,2,3,4>>::value == 3);
- static_assert(BisectLeft<  3, Vector<0,1,2,4,5>>::value == 3);
- static_assert(BisectLeft<  9, Vector<0,1,2,4,5>>::value == 5);
- static_assert(BisectLeft< -1, Vector<0,1,2,4,5>>::value == 0);
- static_assert(BisectLeft<  2, Vector<0,2,2,2,2,2>>::value == 1);
+    static_assert(BisectLeft<3, Vector<0, 1, 2, 3, 4>>::value == 3);
+    static_assert(BisectLeft<3, Vector<0, 1, 2, 4, 5>>::value == 3);
+    static_assert(BisectLeft<9, Vector<0, 1, 2, 4, 5>>::value == 5);
+    static_assert(BisectLeft<-1, Vector<0, 1, 2, 4, 5>>::value == 0);
+    static_assert(BisectLeft<2, Vector<0, 2, 2, 2, 2, 2>>::value == 1);
 
 
 /**
@@ -392,7 +409,6 @@ namespace {
 // static_assert(std::is_same_v<Insert<3, 3, Vector<4,5,6>>::type, Vector<4,5,6,3>>);
 
 }
-
 
 
 int main() {
