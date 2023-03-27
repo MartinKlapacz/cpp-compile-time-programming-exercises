@@ -47,6 +47,7 @@ namespace {
 // Your code goes here:
 // ^ Your code goes here
 
+
     static_assert(std::is_same_v<Vector<1, 2>, Vector<1, 2>>);
 
 
